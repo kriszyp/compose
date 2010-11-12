@@ -1,0 +1,9 @@
+{
+	"name": "compose",
+	"dependencies": {
+		"patr": "0.2.1"
+	},
+	"mappings":{
+		"patr": "https://github.com/kriszyp/patr/zipball/master"
+	}
+}
