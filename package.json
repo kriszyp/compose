@@ -1,9 +1,30 @@
 {
-	"name": "compose",
-	"dependencies": {
-		"patr": "0.2.1"
-	},
-	"mappings":{
-		"patr": "https://github.com/kriszyp/patr/zipball/master"
-	}
+  "name": "compose",
+  "version": "0.1.0",
+  "author": "Kris Zyp",
+  "description": "Fast and light object composition based on mixins and traits",
+  "licenses": [
+     {
+         "type": "AFLv2.1",
+         "url": "http://trac.dojotoolkit.org/browser/dojo/trunk/LICENSE#L43"
+     },
+     {
+         "type": "BSD",
+         "url": "http://trac.dojotoolkit.org/browser/dojo/trunk/LICENSE#L13"
+     }
+  ],
+  "repository": {
+    "type":"git",
+    "url":"http://github.com/kriszyp/compose"
+  },
+  "dependencies": {
+    "patr": "0.2.1"
+  },
+  "directories": {
+    "lib": "./lib"
+  },
+  "main": "./lib/compose",
+  "mappings":{
+    "patr": "https://github.com/kriszyp/patr/zipball/master"
+  }
 }
