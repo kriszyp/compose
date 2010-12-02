@@ -156,11 +156,11 @@ exports.testNestedCompose = function() {
 	var ComposingWidget = Compose(Compose, {
 		foo: "bar"
 	});
-	widget = ComposingWidget({
+	var widget = ComposingWidget({
 		bar: "foo"
 	});
-	assert.equal(widget.bar, "foo");
 	assert.equal(widget.foo, "bar");
+	assert.equal(widget.bar, "foo");
 };
 
 if (require.main === module)
