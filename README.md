@@ -1,11 +1,12 @@
 # ComposeJS
 
-ComposeJS is object composition in harmony with JavaScript, without the magic.
-ComposeJS is lightweight JavaScript module based on the philosophy that JavaScript's 
+ComposeJS is robust object composition built on native JavaScript mechanisms.
+ComposeJS is lightweight (3K minified, 1K gzipped) JavaScript module based on the 
+philosophy that JavaScript's 
 powerful composition mechanisms, including prototype inheritance, closures, and object 
 literals should be embraced, not contorted into an emulation of classes from other 
-languages. It is designed to be very lightweight, to-the-metal fast, simple, and easy to 
-use. ComposeJS builds on some of the best concepts from mixins, traits, and 
+languages. It is designed to be secure, to-the-metal fast, simple, and easy to 
+use. ComposeJS builds on some of the best concepts from mixins, (traits)[http://traitsjs.org], and 
 deterministic multiple inheritance. ComposeJS assists in composing constructors and instances, providing 
 shorthand and robustness for best practice JavaScript. In fact, in the documentation
 equivalent JavaScript code is provided to show exactly what is happening. 
@@ -62,27 +63,25 @@ the faster overall would depend on how many times it is called).
 
 To extend our Widget we can simply include the Widget in Compose arguments: 
 <pre>
-	Widget = Compose(Widget, {
+	HelloWidget = Compose(Widget, {
 		message: "Hello, World",
 		render: function(){
 			this.node.innerHTML = "<div>" + this.message + "</div>";
 		}
 	});
-	var widget = new Widget(node);
-	widget.render();
-	assert.equal(node.innerHTML, "<div>hi</div>");
+	var widget = new HelloWidget();
+	widget.render(node);
 </pre> 
 And the equivalent JavaScript:
 <pre>
-	Widget = function(){
+	HelloWidget = function(){
 	};
-	Widget.prototype = {
-		render: function(){
-			this.node.innerHTML = "<div>hi</div>";
-		}
-	}
-	var widget = new Widget(node);
-	widget.render();
+	HelloWidget.prototype = new Widget();
+	HelloWidget.prototype.render: function(){
+		this.node.innerHTML = "<div>hi</div>";
+	};
+	var widget = new HelloWidget();
+	widget.render(node);
 </pre> 
 
 Now let's create the constructor with a function to be executed on instantiation. Any
@@ -138,39 +137,6 @@ object or else it will remain in a conflicted state. This essentially means that
 provides straightforward, easy to use, method overriding, and ambiguous magical conflict 
 resolution (C3MRO).
 
-## Super-calls
-
-Compose provides support for decorators that can be used customize the composition
-of a property. Compose provides an "around" decorator to provide super-call 
-functionality. The around function allows one to closure around an overriden method to combine
-functionality. For example, we could override the render function in Widget, but still
-call the base function:   
-<pre>
-	var around = Compose.around;
-	WidgetWithTitle = Compose(Widget, {
-		render: around(function(baseRender){
-			// return the new render function
-			return function(){
-				baseRender();
-				this.node.insertBefore(header, this.node.firstChild);
-			};
-		});
-	});
-</pre>
-
-We can specify required methods that must be overriden as well. For example, we can
-define the Widget to require a generateHTML method:
-<pre>
-	var required = Compose.required;
-	Widget = Compose({
-		generateHTML: required,
-		...
-	});
-</pre>
-
-And now to extend the Widget constructor, we must provide a generateHTML method.
-Failure to do so will result in an error being thrown when generateHTML is called.
-
 ## Apply to an existing object
 
 Compose can also be applied to existing objects to add/mixin functionality to that object.
@@ -207,7 +173,8 @@ objects or constructors as arguments.
 ## Compose.create
 
 Compose.create() is another function provided by the ComposeJS library. This function
-is similar to Compose() and takes exactly the same type of arguments, but rather 
+is similar to Compose() and takes exactly the same type of arguments (any mixture 
+of constructors or objects), but rather 
 than creating a constructor, it directly creates an instance object. Calling the constructor
 returned from Compose with no argumetns and calling Compose.create act approximately 
 the same action, i.e. Compose(...)() acts the same as Compose.create(...). The main
@@ -245,4 +212,69 @@ protected from direct access:
 			}
 		});
 	};
+</pre>
+
+## Decorators
+Decorators provides a customized way to add properties/methods to target objects.
+Decorators are created by newing the Decorator constructor with a function argument
+that is called with the property name. The function's |this| will be the target object, and
+the function can add a property anyway it sees fit. For example, you could create a decorator:
+<pre>
+	Logged = function(method){
+		return new Compose.Decorator(function(key){
+			this[key] = function(){
+				console.log(key + " called");
+				return method.apply(this, arguments);
+			}
+		});
+	});
+	Widget = Compose({
+		render: Logged(function(){
+			...
+		});
+	});
+</pre>
+
+Several decorators are provided with ComposeJS. 
+
+### Super-calls
+
+Compose provides an "around" decorator to provide super-call 
+functionality. The around function allows one to closure around an overriden method to combine
+functionality. For example, we could override the render function in Widget, but still
+call the base function:   
+<pre>
+	var around = Compose.around;
+	WidgetWithTitle = Compose(Widget, {
+		render: around(function(baseRender){
+			// return the new render function
+			return function(){
+				baseRender();
+				this.node.insertBefore(header, this.node.firstChild);
+			};
+		});
+	});
+</pre>
+
+We can specify required methods that must be overriden as well. For example, we can
+define the Widget to require a generateHTML method:
+<pre>
+	var required = Compose.required;
+	Widget = Compose({
+		generateHTML: required,
+		...
+	});
+</pre>
+
+And now to extend the Widget constructor, we must provide a generateHTML method.
+Failure to do so will result in an error being thrown when generateHTML is called.
+
+### Non-enumerated methods
+
+The dontEnum decorator can be used for non-enumerated methods:
+<pre>
+	var dontEnum = Compose.dontEnum;
+	WidgetWithTitle = Compose(Widget, {
+		render: dontEnum(function(baseRender){
+			...
 </pre>
