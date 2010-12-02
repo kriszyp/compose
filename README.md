@@ -137,6 +137,19 @@ object or else it will remain in a conflicted state. This essentially means that
 provides straightforward, easy to use, method overriding, and ambiguous magical conflict 
 resolution (C3MRO).
 
+We can specify required methods that must be overriden as well. For example, we can
+define the Widget to require a generateHTML method:
+<pre>
+	var required = Compose.required;
+	Widget = Compose({
+		generateHTML: required,
+		...
+	});
+</pre>
+
+And now to extend the Widget constructor, we must provide a generateHTML method.
+Failure to do so will result in an error being thrown when generateHTML is called.
+
 ## Apply to an existing object
 
 Compose can also be applied to existing objects to add/mixin functionality to that object.
@@ -255,19 +268,6 @@ call the base function:
 		});
 	});
 </pre>
-
-We can specify required methods that must be overriden as well. For example, we can
-define the Widget to require a generateHTML method:
-<pre>
-	var required = Compose.required;
-	Widget = Compose({
-		generateHTML: required,
-		...
-	});
-</pre>
-
-And now to extend the Widget constructor, we must provide a generateHTML method.
-Failure to do so will result in an error being thrown when generateHTML is called.
 
 ### Non-enumerated methods
 
