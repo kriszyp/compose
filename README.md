@@ -262,7 +262,7 @@ call the base function:
 		render: around(function(baseRender){
 			// return the new render function
 			return function(){
-				baseRender();
+				baseRender.call(this);
 				this.node.insertBefore(header, this.node.firstChild);
 			};
 		});
