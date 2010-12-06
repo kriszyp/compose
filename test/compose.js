@@ -2,6 +2,7 @@ var assert = require("assert"),
 	Compose = require("../lib/compose"),
 	required = Compose.required,
 	around = Compose.around,
+	from = Compose.from,
 	create = Compose.create,
 	Widget, MessageWidget, SpanishWidget;
 
@@ -162,6 +163,97 @@ exports.testNestedCompose = function() {
 	assert.equal(widget.foo, "bar");
 	assert.equal(widget.bar, "foo");
 };
+exports.testFromAlias = function() {
+	var AliasedWidget = Compose(Widget, MessageWidget, {
+		baseRender: from(Widget, "render"),
+		messageRender: from("render"),
+		render: function(){
+			this.baseRender();
+			var base = this.node.innerHTML;
+			this.messageRender();
+			var message = this.node.innerHTML;
+			this.node.innerHTML = base + message;
+		}
+	});
+	var node = {};
+	var widget = new AliasedWidget(node);
+	widget.render(node);
+	assert.equal(node.innerHTML, "<div>hi</div><div>Hello, World</div>");
+};
+exports.testFromExclude = function() {
+	var ExcludeWidget = Compose(Widget, MessageWidget, {
+		render: from(Widget)
+	});
+	var node = {};
+	var widget = new ExcludeWidget(node);
+	widget.render();
+	assert.equal(node.innerHTML, "<div>hi</div>");
+};
+exports.testComplexHierarchy = function(){
+	var order = [];
+	var Widget = Compose(
+        function(args){
+            this.id = args.id;
+        },
+        {
+            render: function(){
+                order.push(1);
+            }
+        }
+    );
+
+    var SubMixin1 = Compose(
+        {
+            render: Compose.after(function(){
+                order.push(2);
+            })
+        }
+    );
+    var SubMixin2 = Compose(
+        function(args){
+        },
+        {
+            render: Compose.after(function(){
+                order.push(3);
+            })
+        }
+    );
+    var Mixin = Compose(SubMixin1, SubMixin2,
+        {
+            render: Compose.after(function(){
+                order.push(4);
+            })
+        }
+    );
+
+    var Mixin2 = Compose(
+        {
+            render: around(function(baseRender){
+                return function(){
+                    baseRender.apply(this, arguments);
+                	order.push(5);
+                };
+            })
+        }
+    );
+
+    var Button = Compose(Widget, Mixin, Mixin2,
+        function(args){
+        },
+        {
+            render: Compose.around(function(baseRender){
+                return function(){
+                    baseRender.apply(this, arguments);
+                    order.push(6);
+                };
+            })
+        }
+    );
+    var myButton = new Button({id: "myId"});
+
+    myButton.render();
+    assert.deepEqual(order, [1,2,3,4,5,6]);
+}
 
 if (require.main === module)
     require("patr/runner").run(exports);
