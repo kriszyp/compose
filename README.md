@@ -1,7 +1,7 @@
 # ComposeJS
 
 ComposeJS is robust object composition built on native JavaScript mechanisms.
-ComposeJS is lightweight (3K minified, 1K gzipped) JavaScript module based on the 
+ComposeJS is lightweight (4K minified, 1.3K gzipped) JavaScript module based on the 
 philosophy that JavaScript's 
 powerful composition mechanisms, including prototype inheritance, closures, and object 
 literals should be embraced, not contorted into an emulation of classes from other 
@@ -162,7 +162,26 @@ all the provide objects or constructors added to it. For example:
 	object -> {a: 1, b: 2}
 </pre>
 
-This functionality can be conveniently leveraged to make constructors that mixin properties
+We can use this form of Compose to add methods during construction. This is one style
+of creating instances that have private and public methods. For example, we could extend
+Widget with:
+<pre>
+	var required = Compose.required;
+	Widget = Compose(Widget, function(innerHTML){
+		// this will mixin the provide methods into |this|
+		Compose.call(this, {
+			generateHTML: function(){
+				return "<div>" + generateInner() + "</div>";
+			}
+		});
+		// private function
+		function generateInner(){
+			return innerHTML;
+		}
+	});
+</pre>
+
+Applying Compose can also be conveniently leveraged to make constructors that mixin properties
 from an object argument. This is a common pattern for constructors and allows an
 instance to be created with preset properties provided to the constructor. This also
 also makes it easy to have independent optional named parameters with defaults.
@@ -229,6 +248,137 @@ protected from direct access:
 
 ## Decorators
 Decorators provides a customized way to add properties/methods to target objects.
+Several decorators are provided with ComposeJS:
+
+### Aspects (or Super-calls)
+
+Compose provides an aspect-oriented decorator to add functionality to existing method 
+instead of completely overriding or replacing the method. This provides super-call type 
+functionality. The after() function allows one to add code that will be executed after
+the base method:
+<pre>
+	var after = Compose.after;
+	WidgetWithTitle = Compose(Widget, {
+		render: after(function(){
+			// called after the original render() from Widget  
+			this.node.insertBefore(header, this.node.firstChild);
+		}
+	});
+</pre>
+
+The before() function allows one to add code that will be executed before
+the base method:
+<pre>
+	var before = Compose.before;
+	BoldWidget = Compose(Widget, {
+		render: before(function(){
+			// called before the original render() from Widget  
+			this.node.style.fontWeight = "bold";
+		}
+	});
+</pre>
+
+The around function allows one to closure around an overriden method to combine
+functionality. For example, we could override the render function in Widget, but still
+call the base function:   
+<pre>
+	var around = Compose.around;
+	BoldWidgetWithTitle = Compose(Widget, {
+		render: around(function(baseRender){
+			// return the new render function
+			return function(){
+				this.node.style.fontWeight = "bold";
+				baseRender.call(this);
+				this.node.insertBefore(header, this.node.firstChild);
+			};
+		});
+	});
+</pre>
+
+You can also apply aspects to existing instances. For example, we can add a listener
+for each time render is called on a widget instance:
+<pre>
+	var widget = new Widget(node);
+	Compose.after(widget, "render", function(){
+		console.log("render called");
+	});
+</pre>
+
+You can also use the aspect functions as methods that are applied to their instances.
+For example, we could add the after() function as an on() method:
+<pre>
+	var after = Compose.after;
+	WidgetEventEmitter = Compose(Widget, {
+		on: after
+	});
+	var widget = new WidgetEventEmitter(node);
+	widget.on("render", function(){
+		console.log("render called");
+	});
+</pre>	
+
+All the aspect functions (before, after, and around) can be applied to existing instances or used as methods as demonstrated above.
+
+### Composition Control: Method Aliasing and Exclusion
+One of the key capabilities of traits-style composition is control of which method to
+keep or exclude from the different components that are being combined. The from()
+decorator provides simple control over which method to use. We can use from() with
+the base constructor to indicate the appropriate method to keep. For example, if we
+composed from Widget and Templated, we could use from() to select the save()
+method from Widget and render() from Templated:
+<pre>
+	var from = Compose.from;
+	TemplatedWidget = Compose(Widget, Templated, {
+		save: from(Widget),
+		render: from(Templated)
+	});
+</pre>
+
+We can also alias methods, making them available under a new name. This is very useful
+when we need to access multiple conflicting methods. We can provide a string argument
+that indicates the method name to retrieve (it will be aliased to the property name that
+it is being applied to). With the string argument, the constructor argument is optional
+(defaults to whatever method would naturally be selected for the given name):
+<pre>
+	var from = Compose.from;
+	TemplatedWidget = Compose(Widget, Templated, {
+		widgetRender: from(Widget, "render"),
+		templateRender: from(Templated, "render"),
+		saveTemplate: from("save"),
+		render: function(){
+			this.widgetRender();
+			this.templateRender();
+			// do other stuff
+		},
+		save: function(){
+			this.saveTemplate();
+			//...
+		}
+	});
+</pre>
+
+### Non-enumerated methods
+
+The dontEnum decorator can be used for non-enumerated methods (only works on JavaScript engines with ES5 support):
+<pre>
+	var dontEnum = Compose.dontEnum;
+	WidgetWithTitle = Compose(Widget, {
+		render: dontEnum(function(baseRender){
+			...
+</pre>
+
+#### Note about enumeration shadow bug in IE
+Note that non-enumerable properties will not be copied from mixins (constructors/objects
+after the first argument, the first argument inherits non-enumerable fine). Also note
+that IE has long had a bug where creating a property that shadows a non-enumerable 
+property (like toString, hasOwnProperty, etc) results in a non-enumerable. Some libraries
+perform extra checks for these possibly shadowed properties, but this comes at a 
+significant cost in terms of performance and size. Since most applications don't need 
+to replace these shadowed properties, they shouldn't incur this overhead/penalty. If you really do
+need to use non-enumerable properties in mixins and want to ensure they are copied,
+it is recommended they you add these properties in constructors.
+
+### Creating Decorators
 Decorators are created by newing the Decorator constructor with a function argument
 that is called with the property name. The function's |this| will be the target object, and
 the function can add a property anyway it sees fit. For example, you could create a decorator:
@@ -248,33 +398,4 @@ the function can add a property anyway it sees fit. For example, you could creat
 	});
 </pre>
 
-Several decorators are provided with ComposeJS. 
-
-### Super-calls
-
-Compose provides an "around" decorator to provide super-call 
-functionality. The around function allows one to closure around an overriden method to combine
-functionality. For example, we could override the render function in Widget, but still
-call the base function:   
-<pre>
-	var around = Compose.around;
-	WidgetWithTitle = Compose(Widget, {
-		render: around(function(baseRender){
-			// return the new render function
-			return function(){
-				baseRender.call(this);
-				this.node.insertBefore(header, this.node.firstChild);
-			};
-		});
-	});
-</pre>
-
-### Non-enumerated methods
-
-The dontEnum decorator can be used for non-enumerated methods:
-<pre>
-	var dontEnum = Compose.dontEnum;
-	WidgetWithTitle = Compose(Widget, {
-		render: dontEnum(function(baseRender){
-			...
-</pre>
+ 

@@ -254,6 +254,35 @@ exports.testComplexHierarchy = function(){
     myButton.render();
     assert.deepEqual(order, [1,2,3,4,5,6]);
 }
+exports.testAdvice = function() {
+	var order = [];
+	var obj = {
+		foo: function(value){
+			order.push(value);
+			return 6;
+		},
+		on: Compose.after
+	};
+	Compose.around(obj, "foo", function(base){
+		return function(){
+			order.push(2);
+			try{
+				return base.apply(this, arguments);
+			}finally{
+				order.push(4);
+			}
+		}
+	});
+	obj.on("foo", function(){
+		order.push(5);
+	});
+	Compose.before(obj, "foo", function(value){
+		order.push(value);
+		return [3];
+	});
+	order.push(obj.foo(1));
+	assert.deepEqual(order, [1,2,3,4,5,6]);
+};
 
 if (require.main === module)
     require("patr/runner").run(exports);
