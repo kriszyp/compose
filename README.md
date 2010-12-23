@@ -134,7 +134,7 @@ If a later argument constructor or object inherits a method, this will not autom
 former base constructor's methods unless it has already overriden this method in another base
 constructor's hierarchy. In such cases, the appropriate method must be designated in the final
 object or else it will remain in a conflicted state. This essentially means that explicit ordering 
-provides straightforward, easy to use, method overriding, and ambiguous magical conflict 
+provides straightforward, easy to use, method overriding, without ambiguous magical conflict 
 resolution (C3MRO).
 
 We can specify required methods that must be overriden as well. For example, we can
@@ -266,6 +266,9 @@ the base method:
 	});
 </pre>
 
+The after() advice (provided function) can return a value that will be returned to the original caller. If
+nothing is returned, the inherited method's return value will be returned.
+ 
 The before() function allows one to add code that will be executed before
 the base method:
 <pre>
@@ -277,6 +280,10 @@ the base method:
 		}
 	});
 </pre>
+
+The before() advice can return an array that will be used as the arguments for the
+inherited function. If nothing is returned, the original calling arguments are passed to
+the inherited function. 
 
 The around function allows one to closure around an overriden method to combine
 functionality. For example, we could override the render function in Widget, but still
