@@ -92,19 +92,6 @@ exports.testAround = function() {
 	widget.render();
 	assert.equal(node.innerHTML, "<hi>Title</h1><div>Hello, World</div>");
 };
-exports.testDontEnum = function() {
-	var DontEnumWidget = Compose(MessageWidget, {
-		message: "Hello, World",
-		dontEnum: Compose.dontEnum(3)
-	});
-	var widget = new DontEnumWidget({});
-	assert.equal(widget.dontEnum, 3);
-	if(Object.defineProperty){
-		for(var i in widget){
-			assert.notEqual(i, "dontEnum");
-		}
-	}
-};
 exports.testRequired = function() {
 	var logged;
 	var Logger = Compose({
