@@ -18,13 +18,13 @@
     "url":"http://github.com/kriszyp/compose"
   },
   "dependencies": {
-    "patr": "0.2.1"
+    "patr": "0.2.4"
   },
   "directories": {
     "lib": "./lib"
   },
   "main": "./lib/compose",
   "mappings":{
-    "patr": "https://github.com/kriszyp/patr/zipball/master"
+    "patr": "http://github.com/kriszyp/patr/zipball/v0.2.4"
   }
 }
