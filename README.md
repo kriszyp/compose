@@ -283,7 +283,8 @@ the base method:
 
 The before() advice can return an array that will be used as the arguments for the
 inherited function. If nothing is returned, the original calling arguments are passed to
-the inherited function. 
+the inherited function. If Compose.stop is returned, the inherited function will not be 
+called.
 
 The around function allows one to closure around an overriden method to combine
 functionality. For example, we could override the render function in Widget, but still
@@ -301,30 +302,6 @@ call the base function:
 		});
 	});
 </pre>
-
-You can also apply aspects to existing instances. For example, we can add a listener
-for each time render is called on a widget instance:
-<pre>
-	var widget = new Widget(node);
-	Compose.after(widget, "render", function(){
-		console.log("render called");
-	});
-</pre>
-
-You can also use the aspect functions as methods that are applied to their instances.
-For example, we could add the after() function as an on() method:
-<pre>
-	var after = Compose.after;
-	WidgetEventEmitter = Compose(Widget, {
-		on: after
-	});
-	var widget = new WidgetEventEmitter(node);
-	widget.on("render", function(){
-		console.log("render called");
-	});
-</pre>	
-
-All the aspect functions (before, after, and around) can be applied to existing instances or used as methods as demonstrated above.
 
 ### Composition Control: Method Aliasing and Exclusion
 One of the key capabilities of traits-style composition is control of which method to
