@@ -241,7 +241,7 @@ exports.testComplexHierarchy = function(){
     myButton.render();
     assert.deepEqual(order, [1,2,3,4,5,6]);
 }
-exports.testAdvice = function() {
+/*exports.testAdvice = function() {
 	var order = [];
 	var obj = {
 		foo: function(value){
@@ -269,7 +269,7 @@ exports.testAdvice = function() {
 	});
 	order.push(obj.foo(1));
 	assert.deepEqual(order, [1,2,3,4,5,6]);
-};
+};*/
 
 if (require.main === module)
     require("patr/runner").run(exports);
