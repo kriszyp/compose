@@ -1,6 +1,6 @@
 {
   "name": "compose",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "author": "Kris Zyp",
   "description": "Fast and light object composition based on mixins and traits",
   "licenses": [
@@ -18,13 +18,13 @@
     "url":"http://github.com/kriszyp/compose"
   },
   "dependencies": {
-    "patr": "0.2.4"
+    "patr": "0.2.5"
   },
   "directories": {
     "lib": "./lib"
   },
   "main": "./lib/compose",
   "mappings":{
-    "patr": "http://github.com/kriszyp/patr/zipball/v0.2.4"
+    "patr": "http://github.com/kriszyp/patr/zipball/v0.2.5"
   }
 }
