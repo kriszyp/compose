@@ -240,6 +240,17 @@ exports.testComplexHierarchy = function(){
 
     myButton.render();
     assert.deepEqual(order, [1,2,3,4,5,6]);
+};
+
+exports.testExtendError = function(){
+	var CustomError = Compose(Error, {
+		name: "CustomError"
+	});
+	var error = new CustomError("test");
+	assert.equal(error.name, "CustomError");
+	assert.equal(error.toString(), "CustomError: test");
+	assert.equal(error instanceof CustomError, true);
+	assert.equal(error instanceof Error, true);
 }
 /*exports.testAdvice = function() {
 	var order = [];
