@@ -246,6 +246,21 @@ protected from direct access:
 	};
 </pre>
 
+##Constructor.extend
+Constructors created with Compose also include a "static" extend method that can be
+used for convenience in creating subclasses. The extend method behaves the same
+as Compose with the target class being the first parameter:
+<pre>
+	MyClass = Compose(...);
+	SubClass = MyClass.extend({
+		subMethod: function(){}
+	});
+	// same as:
+	SubClass = Compose(MyClass,{
+		subMethod: function(){}
+	});
+</pre>
+
 ## Decorators
 Decorators provides a customized way to add properties/methods to target objects.
 Several decorators are provided with ComposeJS:

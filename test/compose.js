@@ -252,6 +252,20 @@ exports.testExtendError = function(){
 	assert.equal(error instanceof CustomError, true);
 	assert.equal(error instanceof Error, true);
 }
+exports.testDiamond = function(){
+	var baseCallCount = 0, sub1CallCount = 0, sub2CallCount = 0;
+	function Base(){
+		baseCallCount++;
+	}
+	var Sub1 = Compose(Base, function(){sub1CallCount++;});
+	var Sub2 = Compose(Base, function(){sub2CallCount++;});
+	var Combined = Sub1.extend(Sub2);
+	new Combined;
+	assert.equal(baseCallCount, 1);
+	assert.equal(sub1CallCount, 1);
+	assert.equal(sub2CallCount, 1);
+}
+
 /*exports.testAdvice = function() {
 	var order = [];
 	var obj = {
@@ -281,6 +295,8 @@ exports.testExtendError = function(){
 	order.push(obj.foo(1));
 	assert.deepEqual(order, [1,2,3,4,5,6]);
 };*/
+
+
 
 if (require.main === module)
     require("patr/runner").run(exports);
