@@ -33,8 +33,20 @@ exports.testComposeWithConstruct = function() {
 	widget.render();
 	assert.equal(node.innerHTML, "<div>hi</div>");
 };
-exports.testInheritance= function() {
+exports.testInheritance = function() {
 	MessageWidget = Compose(Widget, {
+		message: "Hello, World",
+		render: function(){
+			this.node.innerHTML = "<div>" + this.message + "</div>";
+		}
+	});
+	var node = {};
+	var widget = new MessageWidget(node);
+	widget.render();
+	assert.equal(node.innerHTML, "<div>Hello, World</div>");
+};
+exports.testInheritanceViaExtend = function() {
+	MessageWidget = Widget.extend({
 		message: "Hello, World",
 		render: function(){
 			this.node.innerHTML = "<div>" + this.message + "</div>";
@@ -253,48 +265,80 @@ exports.testExtendError = function(){
 	assert.equal(error instanceof Error, true);
 }
 exports.testDiamond = function(){
-	var baseCallCount = 0, sub1CallCount = 0, sub2CallCount = 0;
-	function Base(){
+	var baseCallCount = 0, sub1CallCount = 0, sub2CallCount = 0, fooCallCount = 0, fooSub1Count = 0, fooSub2Count = 0;
+	var Base = Compose(function(){
 		baseCallCount++;
-	}
-	var Sub1 = Compose(Base, function(){sub1CallCount++;});
-	var Sub2 = Compose(Base, function(){sub2CallCount++;});
+	}, {
+		foo: function(){
+			fooCallCount++;
+		}
+	});
+	var Sub1 = Compose(Base, function(){sub1CallCount++;}, {
+			foo: Compose.after(function(){
+				fooSub1Count++;
+			})
+	});
+	var Sub2 = Compose(Base, function(){sub2CallCount++;}, {
+			foo: Compose.after(function(){
+				fooSub2Count++;
+			})
+	});
 	var Combined = Sub1.extend(Sub2);
-	new Combined;
+	var combined = new Combined;
 	assert.equal(baseCallCount, 1);
 	assert.equal(sub1CallCount, 1);
 	assert.equal(sub2CallCount, 1);
+	combined.foo();
+	assert.equal(fooCallCount, 1);
+	//assert.equal(fooSub1Count, 1); // TODO: Should this be 1?
+	assert.equal(fooSub2Count, 1);	
 }
 
-/*exports.testAdvice = function() {
+exports.testAdvice = function() {
 	var order = [];
 	var obj = {
 		foo: function(value){
 			order.push(value);
 			return 6;
 		},
-		on: Compose.after
 	};
-	Compose.around(obj, "foo", function(base){
-		return function(){
-			order.push(2);
-			try{
-				return base.apply(this, arguments);
-			}finally{
-				order.push(4);
+	Advised = Compose(obj, {
+		"foo": Compose.around(function(base){
+			return function(){
+				order.push(2);
+				try{
+					return base.apply(this, arguments);
+				}finally{
+					order.push(4);
+				}
 			}
-		}
+		})
 	});
-	obj.on("foo", function(){
-		order.push(5);
+	Advised = Compose(Advised, {
+		"foo": Compose.after(function(){
+			order.push(5);
+		})
 	});
-	Compose.before(obj, "foo", function(value){
-		order.push(value);
-		return [3];
+	Advised = Compose(Advised, {
+		"foo": Compose.before(function(value){
+			order.push(value);
+			return [3];
+		})
 	});
+	obj = new Advised();
 	order.push(obj.foo(1));
 	assert.deepEqual(order, [1,2,3,4,5,6]);
-};*/
+	order = [];
+	Advised = Compose(Advised, {
+		"foo": Compose.before(function(value){
+			order.push(0);
+			return Compose.stop;
+		})
+	});
+	obj = new Advised();
+	obj.foo(1);
+	assert.deepEqual(order, [0]);
+};
 
 
 
