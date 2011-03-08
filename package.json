@@ -26,5 +26,6 @@
   "main": "./lib/compose",
   "mappings":{
     "patr": "http://github.com/kriszyp/patr/zipball/v0.2.5"
-  }
+  },
+  icon: "http://icons.iconarchive.com/icons/kawsone/teneo/64/BiiBall-icon.png"
 }
