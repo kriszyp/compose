@@ -208,7 +208,7 @@ Compose.create() is another function provided by the ComposeJS library. This fun
 is similar to Compose() and takes exactly the same type of arguments (any mixture 
 of constructors or objects), but rather 
 than creating a constructor, it directly creates an instance object. Calling the constructor
-returned from Compose with no argumetns and calling Compose.create act approximately 
+returned from Compose with no arguments and calling Compose.create act approximately 
 the same action, i.e. Compose(...)() acts the same as Compose.create(...). The main
 difference is that Compose.create is optimized for instance creation and avoids
 unnecessary prototype creation involved in creating a constructor.
