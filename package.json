@@ -23,7 +23,7 @@
   "directories": {
     "lib": "."
   },
-  "main": "./lib/compose",
+  "main": "./compose",
   "mappings":{
     "patr": "http://github.com/kriszyp/patr/zipball/v0.2.5"
   },
