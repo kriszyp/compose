@@ -1,7 +1,7 @@
 # ComposeJS
 
 ComposeJS is robust object composition built on native JavaScript mechanisms.
-ComposeJS is lightweight (4K minified, 1.3K gzipped) JavaScript module based on the 
+ComposeJS is lightweight (3K minified, 1K gzipped) JavaScript module based on the 
 philosophy that JavaScript's 
 powerful composition mechanisms, including prototype inheritance, closures, and object 
 literals should be embraced, not contorted into an emulation of classes from other 
