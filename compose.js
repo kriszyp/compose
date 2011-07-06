@@ -251,13 +251,13 @@ define([], function(){
 		// this function registers a set of constructors for a class, eliminating duplicate
 		// constructors that may result from diamond construction for classes (B->A, C->A, D->B&C, then D() should only call A() once)
 		var constructors = [];
-		function iterate(args){
+		function iterate(args, checkChildren){
 			outer: 
 			for(var i = 0; i < args.length; i++){
 				var arg = args[i];
 				if(typeof arg == "function"){
-					if(arg._getConstructors){
-						iterate(arg._getConstructors());
+					if(checkChildren && arg._getConstructors){
+						iterate(arg._getConstructors()); // don't need to check children for these, this should be pre-flattened 
 					}else{
 						for(var j = 0; j < constructors.length; j++){
 							if(arg == constructors[j]){
@@ -269,7 +269,7 @@ define([], function(){
 				}
 			}
 		}
-		iterate(args);
+		iterate(args, true);
 		return constructors;
 	}
 	// returning the export of the module
