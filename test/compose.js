@@ -1,5 +1,5 @@
 var assert = require("assert"),
-	Compose = require("../lib/compose"),
+	Compose = require("../compose"),
 	required = Compose.required,
 	around = Compose.around,
 	from = Compose.from,
