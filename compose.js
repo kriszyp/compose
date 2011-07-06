@@ -196,7 +196,6 @@ define([], function(){
 		return this; // this depends on strict mode
 	})();
 	
-	var currentConstructors;
 	function extend(){
 		var args = [this];
 		args.push.apply(args, arguments);
@@ -239,34 +238,39 @@ define([], function(){
 			}
 			return instance;
 		}
-		Constructor._register = function(){
-			register(constructors);
+		Constructor._getConstructors = function(){
+			return constructors;
 		};
-		currentConstructors = [];
-		register(arguments);
-		var constructors = currentConstructors, 
-			constructorsLength = constructors.length; 
+		var constructors = getConstructors(arguments), 
+			constructorsLength = constructors.length;
 		Constructor.extend = extend;
 		Constructor.prototype = prototype;
 		return Constructor;
 	};
-	function register(args){
-		outer: 
-		for(var i = 0; i < args.length; i++){
-			var arg = args[i];
-			if(typeof arg == "function"){
-				if(arg._register){
-					arg._register();
-				}else{
-					for(var j = 0; j < currentConstructors.length; j++){
-						if(arg == currentConstructors[j]){
-							continue outer;
+	function getConstructors(args){
+		// this function registers a set of constructors for a class, eliminating duplicate
+		// constructors that may result from diamond construction for classes (B->A, C->A, D->B&C, then D() should only call A() once)
+		var constructors = [];
+		function iterate(args){
+			outer: 
+			for(var i = 0; i < args.length; i++){
+				var arg = args[i];
+				if(typeof arg == "function"){
+					if(arg._getConstructors){
+						iterate(arg._getConstructors());
+					}else{
+						for(var j = 0; j < constructors.length; j++){
+							if(arg == constructors[j]){
+								continue outer;
+							}
 						}
+						constructors.push(arg);
 					}
-					currentConstructors.push(arg);
 				}
 			}
 		}
+		iterate(args);
+		return constructors;
 	}
 	// returning the export of the module
 	return Compose;
