@@ -237,6 +237,9 @@ define([], function(){
 					}
 				}
 			}
+			if(typeof instance["-constructed-"] == "function"){
+				instance["-constructed-"].apply(instance, arguments);
+			}
 			return instance;
 		}
 		Constructor._getConstructors = function(){
