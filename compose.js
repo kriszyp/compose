@@ -192,33 +192,28 @@ define([], function(){
 	};
 	Compose.required = required;
 	// get the value of |this| for direct function calls for this mode (strict in ES5)
-	var undefinedThis = (function(){
-		return this; // this depends on strict mode
-	})();
 	
 	function extend(){
 		var args = [this];
 		args.push.apply(args, arguments);
-		return Compose.apply(undefinedThis, args);
+		return Compose.apply(0, args);
 	}
 	// Compose a constructor
 	function Compose(base){
 		var args = arguments;
-		if(this != undefinedThis){
-			return mixin(this, arguments, 0); // if it is being applied, mixin into |this| 
-		}
 		var prototype = (args.length < 2 && typeof args[0] != "function") ? 
 			args[0] : // if there is just a single argument object, just use that as the prototype 
-			mixin(delegate(base), arguments, 1); // normally create a delegate to start with			
+			mixin(delegate(base), args, 1); // normally create a delegate to start with			
 		function Constructor(){
 			var instance;
-			if(this === undefinedThis){
+			if(this instanceof Constructor){
+				// called with new operator, can proceed as is
+				instance = this;
+			}else{
 				// we allow for direct calls without a new operator, in this case we need to
 				// create the instance ourself.
 				Create.prototype = prototype;
 				instance = new Create();
-			}else{
-				instance = this;
 			}
 			// call all the constructors with the given arguments
 			for(var i = 0; i < constructorsLength; i++){
@@ -247,6 +242,18 @@ define([], function(){
 		Constructor.prototype = prototype;
 		return Constructor;
 	};
+	
+	Compose.apply = function(thisObject, args){
+		// apply to the target
+		return thisObject ? 
+			mixin(thisObject, args, 0) : // called with a target object, apply the supplied arguments as mixins to the target object
+			extend.apply.call(Compose, 0, args); // get the Function.prototype apply function, call() it to apply arguments to Compose (the extend doesn't matter, just a handle way to grab apply, since we can't get it off of Compose) 
+	};
+	Compose.call = function(thisObject){
+		// call() should correspond with apply behavior
+		return mixin(thisObject, arguments, 1);
+	};
+	
 	function getConstructors(args){
 		// this function registers a set of constructors for a class, eliminating duplicate
 		// constructors that may result from diamond construction for classes (B->A, C->A, D->B&C, then D() should only call A() once)
