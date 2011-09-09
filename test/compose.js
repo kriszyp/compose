@@ -293,7 +293,15 @@ exports.testDiamond = function(){
 	//assert.equal(fooSub1Count, 1); // TODO: Should this be 1?
 	assert.equal(fooSub2Count, 1);	
 }
-
+exports.testNull = function() {
+	var errored;
+	try{
+		Compose(null, {});
+	}catch(e){
+		errored = true;
+	}
+	assert.equal(errored, true);
+}
 exports.testAdvice = function() {
 	var order = [];
 	var obj = {

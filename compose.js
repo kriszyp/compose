@@ -11,14 +11,20 @@ define([], function(){
 	}
 	var delegate = Object.create ?
 		function(proto){
-			return Object.create(typeof proto == "function" ? proto.prototype : proto || Object.prototype);
+			return Object.create(typeof validArg(proto) == "function" ? proto.prototype : proto || Object.prototype);
 		} :
 		function(proto){
-			Create.prototype = typeof proto == "function" ? proto.prototype : proto;
+			Create.prototype = typeof validArg(proto) == "function" ? proto.prototype : proto;
 			var instance = new Create();
 			Create.prototype = null;
 			return instance;
 		};
+	function validArg(arg){
+		if(!arg){
+			throw new Error("Compose arguments must be functions or objects");
+		}
+		return arg;
+	}
 	// this does the work of combining mixins/prototypes
 	function mixin(instance, args, i){
 		// use prototype inheritance for first arg
@@ -42,7 +48,7 @@ define([], function(){
 				}
 			}else{
 				// it is an object, copy properties, looking for modifiers
-				for(var key in arg){
+				for(var key in validArg(arg)){
 					var value = arg[key];
 					if(typeof value == "function"){
 						if(value.install){
