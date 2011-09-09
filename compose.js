@@ -11,10 +11,10 @@ define([], function(){
 	}
 	var delegate = Object.create ?
 		function(proto){
-			return Object.create(typeof validArg(proto) == "function" ? proto.prototype : proto || Object.prototype);
+			return Object.create(typeof proto == "function" ? proto.prototype : proto || Object.prototype);
 		} :
 		function(proto){
-			Create.prototype = typeof validArg(proto) == "function" ? proto.prototype : proto;
+			Create.prototype = typeof proto == "function" ? proto.prototype : proto;
 			var instance = new Create();
 			Create.prototype = null;
 			return instance;
@@ -209,7 +209,7 @@ define([], function(){
 		var args = arguments;
 		var prototype = (args.length < 2 && typeof args[0] != "function") ? 
 			args[0] : // if there is just a single argument object, just use that as the prototype 
-			mixin(delegate(base), args, 1); // normally create a delegate to start with			
+			mixin(delegate(validArg(base)), args, 1); // normally create a delegate to start with			
 		function Constructor(){
 			var instance;
 			if(this instanceof Constructor){
