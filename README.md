@@ -356,27 +356,6 @@ it is being applied to). With the string argument, the constructor argument is o
 	});
 </pre>
 
-### Non-enumerated methods
-
-The dontEnum decorator can be used for non-enumerated methods (only works on JavaScript engines with ES5 support):
-<pre>
-	var dontEnum = Compose.dontEnum;
-	WidgetWithTitle = Compose(Widget, {
-		render: dontEnum(function(baseRender){
-			...
-</pre>
-
-#### Note about enumeration shadow bug in IE
-Note that non-enumerable properties will not be copied from mixins (constructors/objects
-after the first argument, the first argument inherits non-enumerable fine). Also note
-that IE has long had a bug where creating a property that shadows a non-enumerable 
-property (like toString, hasOwnProperty, etc) results in a non-enumerable. Some libraries
-perform extra checks for these possibly shadowed properties, but this comes at a 
-significant cost in terms of performance and size. Since most applications don't need 
-to replace these shadowed properties, they shouldn't incur this overhead/penalty. If you really do
-need to use non-enumerable properties in mixins and want to ensure they are copied,
-it is recommended they you add these properties in constructors.
-
 ### Creating Decorators
 Decorators are created by newing the Decorator constructor with a function argument
 that is called with the property name. The function's |this| will be the target object, and
