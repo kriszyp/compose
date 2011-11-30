@@ -245,6 +245,7 @@ define([], function(){
 		var constructors = getConstructors(arguments), 
 			constructorsLength = constructors.length;
 		Constructor.extend = extend;
+		prototype.constructor = Constructor;
 		Constructor.prototype = prototype;
 		return Constructor;
 	};

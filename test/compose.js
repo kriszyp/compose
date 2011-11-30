@@ -263,6 +263,7 @@ exports.testExtendError = function(){
 	assert.equal(error.toString(), "CustomError: test");
 	assert.equal(error instanceof CustomError, true);
 	assert.equal(error instanceof Error, true);
+	assert.equal(error.constructor, CustomError);
 }
 exports.testDiamond = function(){
 	var baseCallCount = 0, sub1CallCount = 0, sub2CallCount = 0, fooCallCount = 0, fooSub1Count = 0, fooSub2Count = 0;
