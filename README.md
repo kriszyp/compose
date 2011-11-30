@@ -376,4 +376,18 @@ the function can add a property anyway it sees fit. For example, you could creat
 	});
 </pre>
 
- 
+### Security
+By default Compose will add a constructor property to your constructor's prototype to make
+the constructor available from instances:
+<pre>
+	Widget = Compose({...});
+	var widget = new Widget();
+	widget.constructor == Widget // true
+</pre>
+However, in the context of object capability security, providing access to the constructor
+from instances is considered a violation of principle of least access. If you would like to
+disable this feature for the purposes of using Compose in secure environments, you can
+set:
+<pre>
+Compose.secure = true;
+</pre>
