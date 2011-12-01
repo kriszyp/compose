@@ -75,10 +75,11 @@ To extend our Widget we can simply include the Widget in Compose arguments:
 And the equivalent JavaScript:
 <pre>
 	HelloWidget = function(){
+		this.message = "Hello, World";
 	};
 	HelloWidget.prototype = new Widget();
 	HelloWidget.prototype.render: function(){
-		this.node.innerHTML = "<div>hi</div>";
+		this.node.innerHTML = "<div>" + this.message + "</div>";
 	};
 	var widget = new HelloWidget();
 	widget.render(node);
@@ -103,11 +104,11 @@ can be used to prepare the object on instantiation:
 </pre> 
 And the equivalent JavaScript:
 <pre>
-	Widget = function(){
+	Widget = function(node){
 		this.node = node;
 	};
 	Widget.prototype = {
-		render: function(node){
+		render: function(){
 			this.node.innerHTML = "<div>hi</div>";
 		},
 		getNode: function(){
@@ -118,7 +119,7 @@ And the equivalent JavaScript:
 	widget.render();
 </pre> 
  
-Compose provides can compose constructors from multiple base constructors, effectively
+Compose can compose constructors from multiple base constructors, effectively
 providing multiple inheritance. For example, we could create a new widget from Widget
 and Templated base constructors:
 <pre>
