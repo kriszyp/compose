@@ -1,4 +1,7 @@
-var assert = require("assert"),
+(function(define){
+define(function(require, exports, module){
+
+var assert = require("patr/assert"),
 	Compose = require("../compose"),
 	required = Compose.required,
 	around = Compose.around,
@@ -255,7 +258,9 @@ exports.testComplexHierarchy = function(){
 };
 
 exports.testExtendError = function(){
-	var CustomError = Compose(Error, {
+	var CustomError = Compose(Error, function(message){
+		this.message = message;
+	},{
 		name: "CustomError"
 	});
 	var error = new CustomError("test");
@@ -264,6 +269,24 @@ exports.testExtendError = function(){
 	assert.equal(error instanceof CustomError, true);
 	assert.equal(error instanceof Error, true);
 	assert.equal(error.constructor, CustomError);
+}
+exports.testAfterNothing = function(){
+	var fooCount = 0, barCount = 0;
+	var Base = Compose({
+		foo: Compose.after(function(){
+			fooCount++;
+		})
+	});
+	var Sub1 = Compose(Base, {
+			bar: Compose.after(function(){
+				barCount++;
+			})
+	});
+	var sub = new Sub1;
+	sub.foo();
+	sub.bar();
+	assert.equal(fooCount, 1);
+	assert.equal(barCount, 1);
 }
 exports.testDiamond = function(){
 	var baseCallCount = 0, sub1CallCount = 0, sub2CallCount = 0, fooCallCount = 0, fooSub1Count = 0, fooSub2Count = 0;
@@ -291,7 +314,7 @@ exports.testDiamond = function(){
 	assert.equal(sub2CallCount, 1);
 	combined.foo();
 	assert.equal(fooCallCount, 1);
-	//assert.equal(fooSub1Count, 1); // TODO: Should this be 1?
+	assert.equal(fooSub1Count, 1);
 	assert.equal(fooSub2Count, 1);	
 }
 exports.testNull = function() {
@@ -353,3 +376,9 @@ exports.testAdvice = function() {
 
 if (require.main === module)
     require("patr/runner").run(exports);
+});
+})(typeof define != "undefined" ?
+	define: // AMD/RequireJS format if available
+	function(factory){
+		factory(require, exports, module); // CommonJS environment, like NodeJS
+	});

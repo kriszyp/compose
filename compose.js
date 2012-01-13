@@ -33,13 +33,29 @@ define([], function(){
 			var arg = args[i];
 			if(typeof arg == "function"){
 				// the arg is a function, use the prototype for the properties
-				arg = arg.prototype;
-				for(var key in arg){
-					value = arg[key];
+				var prototype = arg.prototype;
+				for(var key in prototype){
+					value = prototype[key];
+					var own = prototype.hasOwnProperty(key);
 					if(typeof value == "function" && key in instance && value !== instance[key]){
-						value = resolvePrototype(value, key, instance[key], arg.hasOwnProperty(key), instance);
+						var existing = instance[key]; 
+						if(value == required){
+							// it is a required value, and we have satisfied it
+							value = existing;
+						} 
+						else if(!own){
+							// if it is own property, it is considered an explicit override 
+							// TODO: make faster calls on this, perhaps passing indices and caching
+							if(isInMethodChain(value, key, getBases([].slice.call(args, 0, i), true))){
+								// this value is in the existing method's override chain, we can use the existing method
+								value = existing;
+							}else if(!isInMethodChain(existing, key, getBases([arg], true))){
+								// the existing method is not in the current override chain, so we are left with a conflict
+								console.error("Conflicted method " + key + ", final composer must explicitly override with correct method.");
+							}
+						}
 					}
-					if(value && value.install){
+					if(value && value.install && own && !isInMethodChain(existing, key, getBases([arg], true))){
 						// apply modifier
 						value.install.call(instance, key);
 					}else{
@@ -61,10 +77,6 @@ define([], function(){
 								// required requirement met
 								continue;
 							} 
-							if(!value.overrides){
-								// add the overrides chain
-								value.overrides = instance[key];
-							}
 						}
 					}
 					// add it to the instance
@@ -78,48 +90,22 @@ define([], function(){
 	Compose._setMixin = function(newMixin){
 		mixin = newMixin;
 	};
-	function resolvePrototype(value, key, existing, own, instance){
-		if(value == required){
-			// it is a required value, and we have satisfied it
-			return existing;
-		} 
-		else if(own){
-			// if it is own property, it is considered an explicit override 
-			if(!value.overrides){
-				// record the override hierarchy
-				value.overrides = instance[key];
+	function isInMethodChain(method, name, prototypes){
+		// searches for a method in the given prototype hierarchy 
+		for(var i = 0; i < prototypes.length;i++){
+			var prototype = prototypes[i];
+			if(prototype[name] == method){
+				// found it
+				return true;
 			}
-		}else{
-			// still possible conflict, see if either value is in the other value's override chain
-			var overriden = value;
-			while((overriden = overriden.overrides) != existing){
-				if(!overriden){
-					// couldn't find existing in the provided value's override chain 
-					overriden = existing;
-					while((overriden = overriden.overrides) != value){
-						if(!overriden){
-							// couldn't find value in the provided existing's override chain
-							// we have a real conflict now
-							existing = function(){
-								throw new Error("Conflicted method, final composer must explicitly override with correct method.");
-							}
-							break;
-						}
-					}
-					// use existing, since it overrides value
-					value = existing;
-					break;
-				}
-			}
-			
 		}
-		return value;
 	}
-	Compose._resolvePrototype = resolvePrototype;
-
 	// Decorator branding
-	function Decorator(install){
+	function Decorator(install, direct){
 		function Decorator(){
+			if(direct){
+				return direct.apply(this, arguments);
+			}
 			throw new Error("Decorator not applied");
 		}
 		Decorator.install = install;
@@ -129,18 +115,10 @@ define([], function(){
 	// aspect applier 
 	function aspect(handler){
 		return function(advice){
-			return Decorator(function(key){
+			return Decorator(function install(key){
 				var baseMethod = this[key];
-				if(baseMethod && !(baseMethod.install)){
-					// applying to a plain method
-					this[key] = handler(this, baseMethod, advice);
-				}else{
-					this[key] = Compose.around(function(topMethod){
-						baseMethod && baseMethod.install.call(this, key);
-						return handler(this, this[key], advice);
-					});
-				}
-			});
+				(advice = this[key] = baseMethod ? handler(this, baseMethod, advice) : advice).install = install;
+			}, advice);
 		};
 	};
 	// around advice, useful for calling super methods too
@@ -235,15 +213,21 @@ define([], function(){
 							}
 						}
 					}
-				}
+				}	
 			}
 			return instance;
 		}
-		Constructor._getConstructors = function(){
-			return constructors;
+		// create a function that can retrieve the bases (constructors or prototypes)
+		Constructor._getBases = function(prototype){
+			return prototype ? prototypes : constructors;
 		};
-		var constructors = getConstructors(arguments), 
+		// now get the prototypes and the constructors
+		var constructors = getBases(args), 
 			constructorsLength = constructors.length;
+		if(typeof args[args.length - 1] == "object"){
+			args[args.length - 1] = prototype;
+		}
+		var prototypes = getBases(args, true);
 		Constructor.extend = extend;
 		if(!Compose.secure){
 			prototype.constructor = Constructor;
@@ -263,30 +247,33 @@ define([], function(){
 		return mixin(thisObject, arguments, 1);
 	};
 	
-	function getConstructors(args){
+	function getBases(args, prototype){
 		// this function registers a set of constructors for a class, eliminating duplicate
 		// constructors that may result from diamond construction for classes (B->A, C->A, D->B&C, then D() should only call A() once)
-		var constructors = [];
+		var bases = [];
 		function iterate(args, checkChildren){
 			outer: 
 			for(var i = 0; i < args.length; i++){
 				var arg = args[i];
-				if(typeof arg == "function"){
-					if(checkChildren && arg._getConstructors){
-						iterate(arg._getConstructors()); // don't need to check children for these, this should be pre-flattened 
+				var target = prototype && typeof arg == "function" ?
+						arg.prototype : arg;
+				if(prototype || typeof arg == "function"){
+					var argGetBases = checkChildren && arg._getBases;
+					if(argGetBases){
+						iterate(argGetBases(prototype)); // don't need to check children for these, this should be pre-flattened 
 					}else{
-						for(var j = 0; j < constructors.length; j++){
-							if(arg == constructors[j]){
+						for(var j = 0; j < bases.length; j++){
+							if(target == bases[j]){
 								continue outer;
 							}
 						}
-						constructors.push(arg);
+						bases.push(target);
 					}
 				}
 			}
 		}
 		iterate(args, true);
-		return constructors;
+		return bases;
 	}
 	// returning the export of the module
 	return Compose;
