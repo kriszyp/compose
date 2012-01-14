@@ -221,6 +221,25 @@ define([], function(){
 		Constructor._getBases = function(prototype){
 			return prototype ? prototypes : constructors;
 		};
+		// expands an existing compose instance
+		Constructor.expand = function(external){
+			var externalConstructors = external._getBases(),
+				externalPrototypes = external._getBases(true),
+				i, 
+				ii;
+				
+			for (i = 0, ii = externalConstructors.length; i < ii; i += 1) {
+				constructors.push(externalConstructors[i]);
+			}
+			constructorsLength += externalConstructors.length;
+			
+			// Expand the prototype
+			for(var key in external.prototype) {
+				if (this.prototype[key] === undefined) {
+					this.prototype[key] = external.prototype[key];
+				}
+			}
+		};
 		// now get the prototypes and the constructors
 		var constructors = getBases(args), 
 			constructorsLength = constructors.length;
