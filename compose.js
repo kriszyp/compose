@@ -215,11 +215,31 @@ define([], function(){
 					}
 				}	
 			}
+			expandable = false;
 			return instance;
 		}
 		// create a function that can retrieve the bases (constructors or prototypes)
 		Constructor._getBases = function(prototype){
 			return prototype ? prototypes : constructors;
+		};
+		// expands an existing compose instance
+		Constructor.expand = function(){
+			if (! expandable) {
+				throw new Error('Compose can only expand until the first instantiation of an object');
+			}
+			var expanded = this.extend.apply(
+				this, 
+				[this].concat(
+					Array.prototype.slice.call(arguments)
+					)
+				);
+			
+			// Update the prototype
+			this.prototype = expanded.prototype;
+			
+			// Update the constructors
+			constructors = expanded._getBases();
+			constructorsLength = constructors.length;
 		};
 		// now get the prototypes and the constructors
 		var constructors = getBases(args), 
@@ -228,6 +248,7 @@ define([], function(){
 			args[args.length - 1] = prototype;
 		}
 		var prototypes = getBases(args, true);
+		var expandable = true;
 		Constructor.extend = extend;
 		if(!Compose.secure){
 			prototype.constructor = Constructor;
