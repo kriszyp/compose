@@ -3,8 +3,8 @@
 * JavaScript-style prototype inheritance and composition, multiple inheritance, 
 * mixin and traits-inspired conflict resolution and composition  
  */
-"use strict";
 (function(define){
+"use strict";
 define([], function(){
 	// function for creating instances from a prototype
 	function Create(){
