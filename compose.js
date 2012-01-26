@@ -215,6 +215,9 @@ define([], function(){
 					}
 				}	
 			}
+			if(typeof instance["-constructed-"] == "function"){
+				instance["-constructed-"].apply(instance, arguments);
+			}
 			return instance;
 		}
 		// create a function that can retrieve the bases (constructors or prototypes)
