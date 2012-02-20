@@ -1,7 +1,7 @@
 /*
  * ComposeJS, object composition for JavaScript, featuring
-* JavaScript-style prototype inheritance and composition, multiple inheritance, 
-* mixin and traits-inspired conflict resolution and composition  
+ * JavaScript-style prototype inheritance and composition, multiple inheritance,
+ * mixin and traits-inspired conflict resolution and composition
  */
 (function(define){
 "use strict";
@@ -28,23 +28,23 @@ define([], function(){
 	// this does the work of combining mixins/prototypes
 	function mixin(instance, args, i){
 		// use prototype inheritance for first arg
-		var value, argsLength = args.length; 
+		var value, key, argsLength = args.length;
 		for(; i < argsLength; i++){
 			var arg = args[i];
 			if(typeof arg == "function"){
 				// the arg is a function, use the prototype for the properties
 				var prototype = arg.prototype;
-				for(var key in prototype){
+				for(key in prototype){
 					value = prototype[key];
 					var own = prototype.hasOwnProperty(key);
 					if(typeof value == "function" && key in instance && value !== instance[key]){
-						var existing = instance[key]; 
+						var existing = instance[key];
 						if(value == required){
 							// it is a required value, and we have satisfied it
 							value = existing;
-						} 
+						}
 						else if(!own){
-							// if it is own property, it is considered an explicit override 
+							// if it is own property, it is considered an explicit override
 							// TODO: make faster calls on this, perhaps passing indices and caching
 							if(isInMethodChain(value, key, getBases([].slice.call(args, 0, i), true))){
 								// this value is in the existing method's override chain, we can use the existing method
@@ -60,12 +60,12 @@ define([], function(){
 						value.install.call(instance, key);
 					}else{
 						instance[key] = value;
-					} 
+					}
 				}
 			}else{
 				// it is an object, copy properties, looking for modifiers
-				for(var key in validArg(arg)){
-					var value = arg[key];
+				for(key in validArg(arg)){
+					value = arg[key];
 					if(typeof value == "function"){
 						if(value.install){
 							// apply modifier
@@ -76,7 +76,7 @@ define([], function(){
 							if(value == required){
 								// required requirement met
 								continue;
-							} 
+							}
 						}
 					}
 					// add it to the instance
@@ -84,14 +84,14 @@ define([], function(){
 				}
 			}
 		}
-		return instance;	
+		return instance;
 	}
 	// allow for override (by es5 module)
 	Compose._setMixin = function(newMixin){
 		mixin = newMixin;
 	};
 	function isInMethodChain(method, name, prototypes){
-		// searches for a method in the given prototype hierarchy 
+		// searches for a method in the given prototype hierarchy
 		for(var i = 0; i < prototypes.length;i++){
 			var prototype = prototypes[i];
 			if(prototype[name] == method){
@@ -99,6 +99,7 @@ define([], function(){
 				return true;
 			}
 		}
+		return false;
 	}
 	// Decorator branding
 	function Decorator(install, direct){
@@ -112,7 +113,7 @@ define([], function(){
 		return Decorator;
 	}
 	Compose.Decorator = Decorator;
-	// aspect applier 
+	// aspect applier
 	function aspect(handler){
 		return function(advice){
 			return Decorator(function install(key){
@@ -142,20 +143,20 @@ define([], function(){
 			return adviceResults === undefined ? results : adviceResults;
 		};
 	});
-	
+
 	// rename Decorator for calling super methods
 	Compose.from = function(trait, fromKey){
 		if(fromKey){
 			return (typeof trait == "function" ? trait.prototype : trait)[fromKey];
 		}
 		return Decorator(function(key){
-			if(!(this[key] = (typeof trait == "string" ? this[trait] : 
+			if(!(this[key] = (typeof trait == "string" ? this[trait] :
 				(typeof trait == "function" ? trait.prototype : trait)[fromKey || key]))){
 				throw new Error("Source method " + fromKey + " was not available to be renamed to " + key);
 			}
 		});
 	};
-	
+
 	// Composes an instance
 	Compose.create = function(base){
 		// create the instance
@@ -169,14 +170,14 @@ define([], function(){
 			}
 		}
 		return instance;
-	}
+	};
 	// The required function, just throws an error if not overriden
 	function required(){
 		throw new Error("This method is required and no implementation has been provided");
 	};
 	Compose.required = required;
 	// get the value of |this| for direct function calls for this mode (strict in ES5)
-	
+
 	function extend(){
 		var args = [this];
 		args.push.apply(args, arguments);
@@ -185,9 +186,9 @@ define([], function(){
 	// Compose a constructor
 	function Compose(base){
 		var args = arguments;
-		var prototype = (args.length < 2 && typeof args[0] != "function") ? 
-			args[0] : // if there is just a single argument object, just use that as the prototype 
-			mixin(delegate(validArg(base)), args, 1); // normally create a delegate to start with			
+		var prototype = (args.length < 2 && typeof args[0] != "function") ?
+			args[0] : // if there is just a single argument object, just use that as the prototype
+			mixin(delegate(validArg(base)), args, 1); // normally create a delegate to start with
 		function Constructor(){
 			var instance;
 			if(this instanceof Constructor){
@@ -213,7 +214,7 @@ define([], function(){
 							}
 						}
 					}
-				}	
+				}
 			}
 			return instance;
 		}
@@ -222,7 +223,7 @@ define([], function(){
 			return prototype ? prototypes : constructors;
 		};
 		// now get the prototypes and the constructors
-		var constructors = getBases(args), 
+		var constructors = getBases(args),
 			constructorsLength = constructors.length;
 		if(typeof args[args.length - 1] == "object"){
 			args[args.length - 1] = prototype;
@@ -235,24 +236,24 @@ define([], function(){
 		Constructor.prototype = prototype;
 		return Constructor;
 	};
-	
+
 	Compose.apply = function(thisObject, args){
 		// apply to the target
-		return thisObject ? 
+		return thisObject ?
 			mixin(thisObject, args, 0) : // called with a target object, apply the supplied arguments as mixins to the target object
-			extend.apply.call(Compose, 0, args); // get the Function.prototype apply function, call() it to apply arguments to Compose (the extend doesn't matter, just a handle way to grab apply, since we can't get it off of Compose) 
+			extend.apply.call(Compose, 0, args); // get the Function.prototype apply function, call() it to apply arguments to Compose (the extend doesn't matter, just a handle way to grab apply, since we can't get it off of Compose)
 	};
 	Compose.call = function(thisObject){
 		// call() should correspond with apply behavior
 		return mixin(thisObject, arguments, 1);
 	};
-	
+
 	function getBases(args, prototype){
 		// this function registers a set of constructors for a class, eliminating duplicate
 		// constructors that may result from diamond construction for classes (B->A, C->A, D->B&C, then D() should only call A() once)
 		var bases = [];
 		function iterate(args, checkChildren){
-			outer: 
+			outer:
 			for(var i = 0; i < args.length; i++){
 				var arg = args[i];
 				var target = prototype && typeof arg == "function" ?
@@ -260,7 +261,7 @@ define([], function(){
 				if(prototype || typeof arg == "function"){
 					var argGetBases = checkChildren && arg._getBases;
 					if(argGetBases){
-						iterate(argGetBases(prototype)); // don't need to check children for these, this should be pre-flattened 
+						iterate(argGetBases(prototype)); // don't need to check children for these, this should be pre-flattened
 					}else{
 						for(var j = 0; j < bases.length; j++){
 							if(target == bases[j]){
