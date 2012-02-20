@@ -21,7 +21,7 @@ define([], function(){
 		};
 	var getPropertyDescriptor = Object.getOwnPropertyDescriptor ?
 		function(obj, key){
-			return Object.getOwnPropertyDescriptor(obj, key) || { value: obj[key] };
+			return Object.getOwnPropertyDescriptor(obj, key) || { value: obj[key], writable: true, configurable: true, enumerable: true };
 		} :
 		function(obj, key){
 			return { value: obj[key] };
