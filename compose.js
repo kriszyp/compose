@@ -19,6 +19,20 @@ define([], function(){
 			Create.prototype = null;
 			return instance;
 		};
+	var getPropertyDescriptor = Object.getOwnPropertyDescriptor ?
+		function(obj, key){
+			return Object.getOwnPropertyDescriptor(obj, key) || { value: obj[key] };
+		} :
+		function(obj, key){
+			return { value: obj[key] };
+		};
+	var defineProperty = Object.defineProperty ?
+		function(obj, key, desc){
+			Object.defineProperty(obj, key, desc);
+		} :
+		function(obj, key, desc){
+			obj[key] = desc.value;
+		};
 	function validArg(arg){
 		if(!arg){
 			throw new Error("Compose arguments must be functions or objects");
@@ -28,14 +42,15 @@ define([], function(){
 	// this does the work of combining mixins/prototypes
 	function mixin(instance, args, i){
 		// use prototype inheritance for first arg
-		var value, key, argsLength = args.length;
+		var desc, value, key, argsLength = args.length;
 		for(; i < argsLength; i++){
 			var arg = args[i];
 			if(typeof arg == "function"){
 				// the arg is a function, use the prototype for the properties
 				var prototype = arg.prototype;
 				for(key in prototype){
-					value = prototype[key];
+					desc = getPropertyDescriptor(prototype, key);
+					value = desc.value;
 					var own = prototype.hasOwnProperty(key);
 					if(typeof value == "function" && key in instance && value !== instance[key]){
 						var existing = instance[key];
@@ -59,13 +74,14 @@ define([], function(){
 						// apply modifier
 						value.install.call(instance, key);
 					}else{
-						instance[key] = value;
+						defineProperty(instance, key, desc);
 					}
 				}
 			}else{
 				// it is an object, copy properties, looking for modifiers
 				for(key in validArg(arg)){
-					value = arg[key];
+					desc = getPropertyDescriptor(arg, key);
+					value = desc.value;
 					if(typeof value == "function"){
 						if(value.install){
 							// apply modifier
@@ -80,7 +96,7 @@ define([], function(){
 						}
 					}
 					// add it to the instance
-					instance[key] = value;
+					defineProperty(instance, key, desc);
 				}
 			}
 		}
