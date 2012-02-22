@@ -18,7 +18,7 @@
     "url":"http://github.com/kriszyp/compose"
   },
   "dependencies": {
-    "patr": "0.2.5"
+    "patr": "0.3.0"
   },
   "directories": {
     "lib": "."
