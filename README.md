@@ -357,6 +357,33 @@ it is being applied to). With the string argument, the constructor argument is o
 	});
 </pre>
 
+#### Conflict Example
+To help understand conflicts, here is the simplest case where Compose would give a conflict error:
+
+	A = Compose({
+		foo: function(){ console.log("A foo"); }
+	});
+
+	B = Compose({
+		foo: function(){ console.log("B foo"); }
+	});
+	
+	C = Compose(B, {});
+	
+	D = Compose(A, C);
+	new D().foo()
+
+Compose considers class D's foo() method to be a conflict because for C takes 
+precedence over A, but C only inherits foo, it doesn't directly have foo. In other 
+words, a bread-first linearization of methods would give A's foo precedence, 
+but a depth-first linearization of methods would give B's foo precedence, and 
+since this disagree, it is considered ambiguous. Note that these are all conflict free:
+
+	D = Compose(C, A); // A's own foo() wins
+	D = Compose(A, B); // B's own foo() wins
+	D = Compose(A, C, {foo: Compose.from(A)}); // explicitly chose A's foo
+	D = Compose(A, C, {foo: Compose.from(B)}); // explicitly chose B's foo
+
 ### Creating Decorators
 Decorators are created by newing the Decorator constructor with a function argument
 that is called with the property name. The function's |this| will be the target object, and
@@ -392,3 +419,21 @@ set:
 <pre>
 Compose.secure = true;
 </pre>
+
+### Enumeration on Legacy Internet Explorer
+Internet Explorer 8 and earlier have a known issue with enumerating properties that 
+shadow dontEnum properties (toString, toValue, hasOwnProperty, etc. for objects), which
+means that these properties will not be copied to your class on these versions of IE. There is a known
+fix for this, but it does meet the high performance and space priorities of Compose.
+However, if you need to override one of these methods, you can easily workaround this
+issue by setting the method in the constructor instead of the provide object. For example:
+<pre>
+	Widget = Compose(function(){
+		this.toString = function(){
+			// my custom toString method
+		};
+	},{
+		// my other methods
+	});
+</pre>
+  
