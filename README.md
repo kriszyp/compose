@@ -387,22 +387,33 @@ since this disagree, it is considered ambiguous. Note that these are all conflic
 ### Creating Decorators
 Decorators are created by newing the Decorator constructor with a function argument
 that is called with the property name. The function's |this| will be the target object, and
-the function can add a property anyway it sees fit. For example, you could create a decorator:
+the function can add a property anyway it sees fit. For example, you could create a decorator
+that would explicitly override another methods, and fail if an existing method as not there. 
 <pre>
-	Logged = function(method){
+	overrides = function(method){
 		return new Compose.Decorator(function(key){
-			this[key] = function(){
-				console.log(key + " called");
-				return method.apply(this, arguments);
+			var baseMethod = this[key];
+			if(!baseMethod){
+				throw new Error("No method " + key + " exists to override");
 			}
+			this[key] = method;
 		});
-	});
+	};
+	
 	Widget = Compose({
-		render: Logged(function(){
+		render: function(){
 			...
-		});
+		}
+	});
+	SubWidget = Compose(Widget, {
+		render: overrides(function(){
+			...
+		})
 	});
 </pre>
+
+In addition, the Decorator function accepts a second argument, which is the function
+that would be executed if the decorated method is directly executed and does not override another method.
 
 ### Security
 By default Compose will add a constructor property to your constructor's prototype to make

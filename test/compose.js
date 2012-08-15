@@ -372,7 +372,32 @@ exports.testAdvice = function() {
 	assert.deepEqual(order, [0]);
 };
 
-
+exports.testDecorator = function(){
+	var order = [];
+	overrides = function(method){
+		return new Compose.Decorator(function(key){
+			var baseMethod = this[key];
+			if(!baseMethod){
+				throw new Error("No method " + key + " exists to override");
+			}
+			this[key] = method;
+		});
+	};
+	
+	Widget = Compose({
+		render: function(){
+			order.push("render");
+		}
+	});
+	SubWidget = Compose(Widget, {
+		render: overrides(function(){
+			order.push("sub render")
+		})
+	});
+	widget = new SubWidget();
+	widget.render();
+	assert.deepEqual(order, ["sub render"]);
+}
 
 if (require.main === module)
     require("patr/runner").run(exports);
