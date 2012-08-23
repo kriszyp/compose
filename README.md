@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/kriszyp/compose.png)](http://travis-ci.org/kriszyp/compose)
 # ComposeJS
 
 ComposeJS is robust object composition built on native JavaScript mechanisms.
