@@ -130,13 +130,13 @@ Templated's methods will override any Widget's method of the same name. However,
 Compose is carefully designed to avoid any confusing conflict resolution in ambiguous cases.
 Automatic overriding will only apply when later arguments have their own methods.
 If a later argument constructor or object inherits a method, this will not automatically override
-former base constructor's methods unless it has already overriden this method in another base
+former base constructor's methods unless it has already overridden this method in another base
 constructor's hierarchy. In such cases, the appropriate method must be designated in the final
 object or else it will remain in a conflicted state. This essentially means that explicit ordering 
 provides straightforward, easy to use, method overriding, without ambiguous magical conflict 
 resolution (C3MRO).
 
-We can specify required methods that must be overriden as well. For example, we can
+We can specify required methods that must be overridden as well. For example, we can
 define the Widget to require a generateHTML method:
 
 	var required = Compose.required;
@@ -293,7 +293,7 @@ inherited function. If nothing is returned, the original calling arguments are p
 the inherited function. If Compose.stop is returned, the inherited function will not be 
 called.
 
-The around function allows one to closure around an overriden method to combine
+The around function allows one to closure around an overridden method to combine
 functionality. For example, we could override the render function in Widget, but still
 call the base function:   
 
@@ -363,7 +363,7 @@ To help understand conflicts, here is the simplest case where Compose would give
 
 Compose considers class D's foo() method to be a conflict because for C takes 
 precedence over A, but C only inherits foo, it doesn't directly have foo. In other 
-words, a bread-first linearization of methods would give A's foo precedence, 
+words, a breadth-first linearization of methods would give A's foo precedence,
 but a depth-first linearization of methods would give B's foo precedence, and 
 since this disagree, it is considered ambiguous. Note that these are all conflict free:
 
