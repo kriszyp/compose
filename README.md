@@ -19,20 +19,19 @@ key function is Compose.create() which behaves like Compose(), except that
 it returns object/instances rather than constructors.
 
 If you are using ComposeJS in a CommonJS environment, you can load it:
-<pre>
-var Compose = require("compose");
-</pre>
+
+	var Compose = require("compose");
+
 Or an AMD module loader (RequireJS, Dojo, etc), you can load it:
-<pre>
-define(["compose"], function(Compose){
-  ...
-});
-</pre>
+
+	define(["compose"], function(Compose){
+		...
+	});
 
 If ComposeJS is loaded as a plain script, it will create Compose as a global variable.
 
 Now to start using Compose, let's create a simple object constructor:
-<pre>
+
 	Widget = Compose({
 		render: function(node){
 			node.innerHTML = "<div>hi</div>";
@@ -40,9 +39,9 @@ Now to start using Compose, let's create a simple object constructor:
 	});
 	var widget = new Widget();
 	widget.render(node);
-</pre>
+
 And the equivalent JavaScript:
-<pre>
+
 	Widget = function(){
 	};
 	Widget.prototype = {
@@ -52,7 +51,7 @@ And the equivalent JavaScript:
 	}
 	var widget = new Widget();
 	widget.render(node);
-</pre> 
+
 One the features provided by ComposeJS is that it creates constructors that will work
 regardless of whether they are called with the new operator, making them less prone
 to coding mistakes. One can also choose to omit the new operator to save bytes (for faster
@@ -62,7 +61,7 @@ the faster overall would depend on how many times it is called).
 ## Extending existing constructor
 
 To extend our Widget we can simply include the Widget in Compose arguments: 
-<pre>
+
 	HelloWidget = Compose(Widget, {
 		message: "Hello, World",
 		render: function(){
@@ -71,9 +70,9 @@ To extend our Widget we can simply include the Widget in Compose arguments:
 	});
 	var widget = new HelloWidget();
 	widget.render(node);
-</pre> 
+
 And the equivalent JavaScript:
-<pre>
+
 	HelloWidget = function(){
 		this.message = "Hello, World";
 	};
@@ -82,13 +81,13 @@ And the equivalent JavaScript:
 		this.node.innerHTML = "<div>" + this.message + "</div>";
 	};
 	var widget = new HelloWidget();
-	widget.render(node);
-</pre> 
+	widget.render(node); 
+
 
 Now let's create the constructor with a function to be executed on instantiation. Any
 functions in the arguments will be executed on construction, so our provided argument
 can be used to prepare the object on instantiation:
-<pre>
+
 	Widget = Compose(function(node){
 		this.node = node;
 	},{
@@ -101,9 +100,9 @@ can be used to prepare the object on instantiation:
 	});
 	var widget = new Widget(node);
 	widget.render();
-</pre> 
+
 And the equivalent JavaScript:
-<pre>
+
 	Widget = function(node){
 		this.node = node;
 	};
@@ -116,17 +115,16 @@ And the equivalent JavaScript:
 		}
 	}
 	var widget = new Widget(node);
-	widget.render();
-</pre> 
- 
+	widget.render(); 
+
 Compose can compose constructors from multiple base constructors, effectively
 providing multiple inheritance. For example, we could create a new widget from Widget
 and Templated base constructors:
-<pre>
+
 	TemplatedWidget = Compose(Widget, Templated, {
 	  // additional functionality
 	});
-</pre>
+
 Again, latter argument's methods override former argument's methods. In this case,
 Templated's methods will override any Widget's method of the same name. However,
 Compose is carefully designed to avoid any confusing conflict resolution in ambiguous cases.
@@ -140,13 +138,12 @@ resolution (C3MRO).
 
 We can specify required methods that must be overriden as well. For example, we can
 define the Widget to require a generateHTML method:
-<pre>
+
 	var required = Compose.required;
 	Widget = Compose({
 		generateHTML: required,
 		...
 	});
-</pre>
 
 And now to extend the Widget constructor, we must provide a generateHTML method.
 Failure to do so will result in an error being thrown when generateHTML is called.
@@ -157,16 +154,15 @@ Compose can also be applied to existing objects to add/mixin functionality to th
 This is done by using the standard call() or apply() function methods to define |this| for the
 call. When Compose is applied in this way, the target object will have the methods from
 all the provide objects or constructors added to it. For example:
-<pre>
+
 	var object = {a: 1};
 	Compose.call(object, {b: 2});
 	object -> {a: 1, b: 2}
-</pre>
 
 We can use this form of Compose to add methods during construction. This is one style
 of creating instances that have private and public methods. For example, we could extend
 Widget with:
-<pre>
+
 	var required = Compose.required;
 	Widget = Compose(Widget, function(innerHTML){
 		// this will mixin the provide methods into |this|
@@ -180,7 +176,6 @@ Widget with:
 			return innerHTML;
 		}
 	});
-</pre>
 
 Applying Compose can also be conveniently leveraged to make constructors that mixin properties
 from an object argument. This is a common pattern for constructors and allows an
@@ -189,7 +184,7 @@ also makes it easy to have independent optional named parameters with defaults.
 We can implement this pattern by simple having Compose be a base constructor
 for our composition. For example, we can create a widget that extends Compose
 and therefore we can instantiate Widgets with an object argument that provides initial property settings:
-<pre>
+
 	Widget = Compose(Compose, {
 		render: function(){
 			this.node.innerHTML = "<div>hi</div>";
@@ -198,7 +193,7 @@ and therefore we can instantiate Widgets with an object argument that provides i
 	var widget = new Widget({node: byId("some-id")});
 	widget.node -> byId("some-id")
 	widget.render(); 
-</pre>
+
 This is a powerful way to build constructors since constructors can be created that include
 all the functionality that Compose provides, including decorators and multiple 
 objects or constructors as arguments.
@@ -221,7 +216,7 @@ For base constructors that don't extend anything else, This is well-supported by
 there is no need to use ComposeJS (or another library) to create a simple base constructor.
 But for extending base constructors, Compose.create is very useful. For example,
 we could create a base widget using this pattern (again, we can just use native JavaScript):
-<pre>
+
 	Widget = function(node){ // node is a private variable
 		return {
 			render: function(){
@@ -230,12 +225,12 @@ we could create a base widget using this pattern (again, we can just use native 
 			message: "Hello"
 		};
 	};
-</pre>
+
 And now we could extend this widget, continuing to use the closure-style constructor,
 with help from Compose.create. Here we will call base constructor, and use the returned
 base instance to compose an extended instance. The "node" variable continues to stay
 protected from direct access:
-<pre>
+
 	BoldWidget = function(node){
 		baseWidget = Widget(node);
 		return Compose.create(baseWidget, {
@@ -245,13 +240,12 @@ protected from direct access:
 			}
 		});
 	};
-</pre>
 
 ##Constructor.extend
 Constructors created with Compose also include a "static" extend method that can be
 used for convenience in creating subclasses. The extend method behaves the same
 as Compose with the target class being the first parameter:
-<pre>
+
 	MyClass = Compose(...);
 	SubClass = MyClass.extend({
 		subMethod: function(){}
@@ -260,7 +254,6 @@ as Compose with the target class being the first parameter:
 	SubClass = Compose(MyClass,{
 		subMethod: function(){}
 	});
-</pre>
 
 ## Decorators
 Decorators provides a customized way to add properties/methods to target objects.
@@ -272,7 +265,7 @@ Compose provides an aspect-oriented decorator to add functionality to existing m
 instead of completely overriding or replacing the method. This provides super-call type 
 functionality. The after() function allows one to add code that will be executed after
 the base method:
-<pre>
+
 	var after = Compose.after;
 	WidgetWithTitle = Compose(Widget, {
 		render: after(function(){
@@ -280,14 +273,13 @@ the base method:
 			this.node.insertBefore(header, this.node.firstChild);
 		}
 	});
-</pre>
 
 The after() advice (provided function) can return a value that will be returned to the original caller. If
 nothing is returned, the inherited method's return value will be returned.
  
 The before() function allows one to add code that will be executed before
 the base method:
-<pre>
+
 	var before = Compose.before;
 	BoldWidget = Compose(Widget, {
 		render: before(function(){
@@ -295,7 +287,6 @@ the base method:
 			this.node.style.fontWeight = "bold";
 		}
 	});
-</pre>
 
 The before() advice can return an array that will be used as the arguments for the
 inherited function. If nothing is returned, the original calling arguments are passed to
@@ -305,7 +296,7 @@ called.
 The around function allows one to closure around an overriden method to combine
 functionality. For example, we could override the render function in Widget, but still
 call the base function:   
-<pre>
+
 	var around = Compose.around;
 	BoldWidgetWithTitle = Compose(Widget, {
 		render: around(function(baseRender){
@@ -317,7 +308,6 @@ call the base function:
 			};
 		});
 	});
-</pre>
 
 ### Composition Control: Method Aliasing and Exclusion
 One of the key capabilities of traits-style composition is control of which method to
@@ -326,20 +316,19 @@ decorator provides simple control over which method to use. We can use from() wi
 the base constructor to indicate the appropriate method to keep. For example, if we
 composed from Widget and Templated, we could use from() to select the save()
 method from Widget and render() from Templated:
-<pre>
+
 	var from = Compose.from;
 	TemplatedWidget = Compose(Widget, Templated, {
 		save: from(Widget),
 		render: from(Templated)
 	});
-</pre>
 
 We can also alias methods, making them available under a new name. This is very useful
 when we need to access multiple conflicting methods. We can provide a string argument
 that indicates the method name to retrieve (it will be aliased to the property name that
 it is being applied to). With the string argument, the constructor argument is optional
 (defaults to whatever method would naturally be selected for the given name):
-<pre>
+
 	var from = Compose.from;
 	TemplatedWidget = Compose(Widget, Templated, {
 		widgetRender: from(Widget, "render"),
@@ -355,7 +344,6 @@ it is being applied to). With the string argument, the constructor argument is o
 			//...
 		}
 	});
-</pre>
 
 #### Conflict Example
 To help understand conflicts, here is the simplest case where Compose would give a conflict error:
@@ -389,7 +377,7 @@ Decorators are created by newing the Decorator constructor with a function argum
 that is called with the property name. The function's |this| will be the target object, and
 the function can add a property anyway it sees fit. For example, you could create a decorator
 that would explicitly override another methods, and fail if an existing method as not there. 
-<pre>
+
 	overrides = function(method){
 		return new Compose.Decorator(function(key){
 			var baseMethod = this[key];
@@ -410,7 +398,6 @@ that would explicitly override another methods, and fail if an existing method a
 			...
 		})
 	});
-</pre>
 
 In addition, the Decorator function accepts a second argument, which is the function
 that would be executed if the decorated method is directly executed and does not override another method.
@@ -418,18 +405,17 @@ that would be executed if the decorated method is directly executed and does not
 ### Security
 By default Compose will add a constructor property to your constructor's prototype to make
 the constructor available from instances:
-<pre>
+
 	Widget = Compose({...});
 	var widget = new Widget();
 	widget.constructor == Widget // true
-</pre>
+
 However, in the context of object capability security, providing access to the constructor
 from instances is considered a violation of principle of least access. If you would like to
 disable this feature for the purposes of using Compose in secure environments, you can
 set:
-<pre>
+
 Compose.secure = true;
-</pre>
 
 ### Enumeration on Legacy Internet Explorer
 Internet Explorer 8 and earlier have a known issue with enumerating properties that 
@@ -438,7 +424,7 @@ means that these properties will not be copied to your class on these versions o
 fix for this, but it does meet the high performance and space priorities of Compose.
 However, if you need to override one of these methods, you can easily workaround this
 issue by setting the method in the constructor instead of the provide object. For example:
-<pre>
+
 	Widget = Compose(function(){
 		this.toString = function(){
 			// my custom toString method
@@ -446,5 +432,4 @@ issue by setting the method in the constructor instead of the provide object. Fo
 	},{
 		// my other methods
 	});
-</pre>
   
