@@ -447,4 +447,10 @@ issue by setting the method in the constructor instead of the provide object. Fo
 		// my other methods
 	});
 </pre>
-  
+
+# License
+
+ComposeJS is freely available under *either* the terms of the modified BSD license *or* the
+Academic Free License version 2.1. More details can be found in the [LICENSE](LICENSE).
+The ComposeJS project follows the IP guidelines of Dojo foundation packages and all 
+contributions require a Dojo CLA.
